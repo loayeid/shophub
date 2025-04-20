@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 
 export default async function Home() {
   // Fetch data for the homepage
-  const featuredProducts = await getFeaturedProducts(4)  
+  const featuredProducts = await getFeaturedProducts(4);  
   const categories = await getCategories()
   const deals = await getDeals(6)
   
