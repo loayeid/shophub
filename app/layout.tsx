@@ -6,6 +6,7 @@ import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import CartProvider from '@/context/cart-context';
 import { Toaster } from '@/components/ui/toaster';
+import { UserProvider } from '@/context/user-context';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -29,12 +30,14 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <CartProvider>
-            <div className="flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
-            <Toaster />
+            <UserProvider>
+              <div className="flex min-h-screen flex-col">
+                <Header />
+                <main className="flex-1">{children}</main>
+                <Footer />
+              </div>
+              <Toaster />
+            </UserProvider>
           </CartProvider>
         </ThemeProvider>
       </body>

@@ -15,11 +15,14 @@ import {
 import { useCart } from '@/context/cart-context'
 import LanguageSelector from '@/components/layout/language-selector'
 import { cn } from '@/lib/utils'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useUser } from '@/context/user-context'
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const { user, setUser, loading, refreshUser } = useUser()
   const router = useRouter()
   const { cart } = useCart()
   
@@ -34,6 +37,12 @@ const Header = () => {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+    setUser(null)
+    router.push('/login')
+  }
   
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -99,12 +108,29 @@ const Header = () => {
         
         <div className="flex items-center space-x-1">
           <LanguageSelector />
-          
-          <Link href="/login">
-            <Button variant="ghost" size="icon" className="relative">
-              <User className="h-5 w-5" />
-            </Button>
-          </Link>
+          {loading ? null : user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Avatar>
+                    <AvatarFallback>{user.name[0]}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link href="/account">My Account</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link href="/login">
+              <Button variant="ghost" size="icon" className="relative">
+                <User className="h-5 w-5" />
+              </Button>
+            </Link>
+          )}
           
           <Link href="/cart">
             <Button variant="ghost" size="icon" className="relative">

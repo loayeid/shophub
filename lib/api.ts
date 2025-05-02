@@ -195,7 +195,6 @@ export async function getFeaturedProducts(limit = 4): Promise<Product[]> {
     ORDER BY p.rating DESC
     LIMIT ?
   `, [limit]);
-  console.log(rows);
   
   return (rows as any[]).map(row => ({
     id: String(row.id),

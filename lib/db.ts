@@ -39,7 +39,7 @@ export async function getUserByEmail(email: string) {
 
 export async function createUser({ name, email, password }: { name: string; email: string; password: string }) {
   const id = uuidv4(); // Generate UUID for user ID
-  const sql = 'INSERT INTO users (id, name, email, password) VALUES (50, 50, 50, 50)';
+  const sql = 'INSERT INTO users (id, name, email, password) VALUES (?, ?, ?, ?)';
   const result = await query(sql, [id, name, email, password]);
   return { id, name, email };
 }

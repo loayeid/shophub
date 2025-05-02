@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useToast } from '@/hooks/use-toast'
+import { useUser } from '@/context/user-context'
 
 // Type for PasswordInput props
 interface PasswordInputProps {
@@ -48,6 +49,7 @@ const PasswordInput = ({ label, value, onChange, showPassword, togglePasswordVis
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { refreshUser } = useUser()
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState('')
@@ -102,6 +104,7 @@ export default function LoginPage() {
       setIsLoginLoading(false)
       if (data.success) {
         toast({ title: 'Logged in successfully', description: `Welcome back, ${data.user.name}!` })
+        await refreshUser()
         router.push('/')
       } else {
         toast({ title: 'Login failed', description: data.message || 'Invalid credentials', variant: 'destructive' })

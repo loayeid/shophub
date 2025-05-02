@@ -12,15 +12,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { useToast } from '@/hooks/use-toast'
+import { useUser } from '@/context/user-context'
 
 // Mock data
-const mockUser = {
-  id: 'user1',
-  name: 'Jane Smith',
-  email: 'jane.smith@example.com',
-  avatar: 'https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=1600',
-}
-
 const mockOrders = [
   {
     id: 'ORD-12345',
@@ -83,14 +77,14 @@ const mockAddresses = [
 
 export default function AccountPage() {
   const { toast } = useToast()
-  const [user, setUser] = useState(mockUser)
+  const { user, loading } = useUser()
   const [orders] = useState(mockOrders)
   const [addresses] = useState(mockAddresses)
   const [isEditing, setIsEditing] = useState(false)
   
   const [formData, setFormData] = useState({
-    name: user.name,
-    email: user.email,
+    name: user?.name,
+    email: user?.email,
   })
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,17 +97,24 @@ export default function AccountPage() {
   
   const handleUpdateProfile = (e: React.FormEvent) => {
     e.preventDefault()
-    setUser({
-      ...user,
-      name: formData.name,
-      email: formData.email,
-    })
+    // setUser({
+    //   ...user,
+    //   name: formData.name,
+    //   email: formData.email,
+    // })
     setIsEditing(false)
     
     toast({
       title: "Profile updated",
       description: "Your profile information has been updated successfully.",
     })
+  }
+
+  if (loading) {
+    return <div className="container mx-auto px-4 py-8 max-w-6xl">Loading...</div>
+  }
+  if (!user) {
+    return <div className="container mx-auto px-4 py-8 max-w-6xl">You must be logged in to view this page.</div>
   }
   
   return (
@@ -125,10 +126,6 @@ export default function AccountPage() {
         <div className="hidden md:block">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
             <div className="flex items-center space-x-3 mb-6">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-              </Avatar>
               <div>
                 <p className="font-medium">{user.name}</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
@@ -194,11 +191,6 @@ export default function AccountPage() {
                 <form onSubmit={handleUpdateProfile}>
                   <CardContent className="space-y-6">
                     <div className="flex flex-col md:flex-row md:items-center gap-6">
-                      <Avatar className="h-24 w-24">
-                        <AvatarImage src={user.avatar} alt={user.name} />
-                        <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                      
                       {!isEditing ? (
                         <Button variant="outline" onClick={() => setIsEditing(true)}>
                           Change Avatar
