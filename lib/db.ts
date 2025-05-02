@@ -1,6 +1,6 @@
+import { v4 as uuidv4 } from 'uuid';
 import mysql from 'mysql2/promise';
 
-// Database connection configuration
 const dbConfig = {
   host: process.env.MYSQL_HOST || 'localhost',
   user: process.env.MYSQL_USER || 'root',
@@ -8,13 +8,11 @@ const dbConfig = {
   database: process.env.MYSQL_DATABASE || 'shophub',
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
 };
 
-// Create a connection pool
 const pool = mysql.createPool(dbConfig);
 
-// Helper function to execute queries
 export async function query(sql: string, params: any[] = []) {
   try {
     const [results] = await pool.execute(sql, params);
@@ -25,7 +23,6 @@ export async function query(sql: string, params: any[] = []) {
   }
 }
 
-// Helper function to execute a single query and return the first row
 export async function queryOne(sql: string, params: any[] = []) {
   try {
     const [rows] = await pool.execute(sql, params);
@@ -36,18 +33,13 @@ export async function queryOne(sql: string, params: any[] = []) {
   }
 }
 
-// Helper function to execute a transaction
-export async function transaction<T>(callback: (connection: mysql.Connection) => Promise<T>): Promise<T> {
-  const connection = await pool.getConnection();
-  try {
-    await connection.beginTransaction();
-    const result = await callback(connection);
-    await connection.commit();
-    return result;
-  } catch (error) {
-    await connection.rollback();
-    throw error;
-  } finally {
-    connection.release();
-  }
+export async function getUserByEmail(email: string) {
+  return await queryOne('SELECT * FROM users WHERE email = ?', [email]);
+}
+
+export async function createUser({ name, email, password }: { name: string; email: string; password: string }) {
+  const id = uuidv4(); // Generate UUID for user ID
+  const sql = 'INSERT INTO users (id, name, email, password) VALUES (50, 50, 50, 50)';
+  const result = await query(sql, [id, name, email, password]);
+  return { id, name, email };
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
@@ -12,17 +12,50 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useToast } from '@/hooks/use-toast'
 
+// Type for PasswordInput props
+interface PasswordInputProps {
+  label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  showPassword: boolean;
+  togglePasswordVisibility: () => void;
+}
+
+const PasswordInput = ({ label, value, onChange, showPassword, togglePasswordVisibility }: PasswordInputProps) => (
+  <div className="space-y-2">
+    <Label>{label}</Label>
+    <div className="relative">
+      <Input
+        type={showPassword ? "text" : "password"}
+        value={value}
+        onChange={onChange}
+        required
+      />
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="absolute right-0 top-0 h-full px-3"
+        onClick={togglePasswordVisibility}
+        aria-label={showPassword ? "Hide password" : "Show password"}
+      >
+        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+      </Button>
+    </div>
+  </div>
+)
+
 export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
-  
+
   // Login form state
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
   const [showLoginPassword, setShowLoginPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const [isLoginLoading, setIsLoginLoading] = useState(false)
-  
+
   // Register form state
   const [registerName, setRegisterName] = useState('')
   const [registerEmail, setRegisterEmail] = useState('')
@@ -31,47 +64,103 @@ export default function LoginPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isRegisterLoading, setIsRegisterLoading] = useState(false)
-  
+
+  // Auto redirect if logged in
+  useEffect(() => {
+    // TODO: Implement your own authentication check here if needed
+    // For now, this effect does nothing
+    // Example: if (userIsAuthenticated()) { router.push('/') }
+  }, [router])
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoginLoading(true)
-    
-    // Simulate API login
-    setTimeout(() => {
+
+    // Sanitize and trim input
+    const trimmedEmail = loginEmail.trim()
+    const trimmedPassword = loginPassword.trim()
+
+    // Client-side validation
+    if (!/\S+@\S+\.\S+/.test(trimmedEmail)) {
+      toast({ title: 'Invalid email format', variant: 'destructive' })
       setIsLoginLoading(false)
-      toast({
-        title: "Logged in successfully",
-        description: `Welcome back, ${loginEmail.split('@')[0]}!`,
-      })
-      router.push('/')
-    }, 1500)
-  }
-  
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (registerPassword !== confirmPassword) {
-      toast({
-        title: "Passwords don't match",
-        description: "Please make sure your passwords match.",
-        variant: "destructive",
-      })
       return
     }
-    
-    setIsRegisterLoading(true)
-    
-    // Simulate API registration
-    setTimeout(() => {
-      setIsRegisterLoading(false)
-      toast({
-        title: "Registration successful",
-        description: "Your account has been created. You can now log in.",
+    if (trimmedPassword.length < 6) {
+      toast({ title: 'Weak password', description: 'Use 6+ characters.', variant: 'destructive' })
+      setIsLoginLoading(false)
+      return
+    }
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword })
       })
-      router.push('/login')
-    }, 1500)
+      const data = await res.json()
+      setIsLoginLoading(false)
+      if (data.success) {
+        toast({ title: 'Logged in successfully', description: `Welcome back, ${data.user.name}!` })
+        router.push('/')
+      } else {
+        toast({ title: 'Login failed', description: data.message || 'Invalid credentials', variant: 'destructive' })
+      }
+    } catch (err) {
+      setIsLoginLoading(false)
+      toast({ title: 'Login error', description: 'Something went wrong. Please try again.', variant: 'destructive' })
+    }
   }
-  
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // Validate passwords match
+    if (registerPassword !== confirmPassword) {
+      toast({ title: "Passwords don't match", description: "Please make sure your passwords match.", variant: "destructive" })
+      return
+    }
+
+    // Sanitize and trim input
+    const trimmedName = registerName.trim()
+    const trimmedEmail = registerEmail.trim()
+    const trimmedPassword = registerPassword.trim()
+
+    // Client-side validation
+    if (!/\S+@\S+\.\S+/.test(trimmedEmail)) {
+      toast({ title: 'Invalid email format', variant: 'destructive' })
+      return
+    }
+    if (trimmedPassword.length < 6) {
+      toast({ title: 'Weak password', description: 'Use 6+ characters.', variant: 'destructive' })
+      return
+    }
+
+    setIsRegisterLoading(true)
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmedName, email: trimmedEmail, password: trimmedPassword })
+      })
+      const data = await res.json()
+      setIsRegisterLoading(false)
+      if (!res.ok) {
+        toast({ title: 'Registration failed', description: data?.message || 'Could not register', variant: 'destructive' })
+        return
+      }
+      if (data.success) {
+        toast({ title: 'Registration successful', description: 'Your account has been created. You can now log in.' })
+        router.push('/login')
+      } else {
+        toast({ title: 'Registration failed', description: data.message || 'Could not register', variant: 'destructive' })
+      }
+    } catch (err) {
+      setIsRegisterLoading(false)
+      toast({ title: 'Registration error', description: 'Something went wrong. Please try again.', variant: 'destructive' })
+    }
+  }
+
   return (
     <div className="container mx-auto px-4 py-16 max-w-md">
       <Tabs defaultValue="login" className="w-full">
@@ -79,14 +168,12 @@ export default function LoginPage() {
           <TabsTrigger value="login">Login</TabsTrigger>
           <TabsTrigger value="register">Register</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="login">
           <Card>
             <CardHeader>
               <CardTitle>Login to your account</CardTitle>
-              <CardDescription>
-                Enter your email and password to access your account
-              </CardDescription>
+              <CardDescription>Enter your email and password to access your account</CardDescription>
             </CardHeader>
             
             <form onSubmit={handleLogin}>
@@ -98,62 +185,24 @@ export default function LoginPage() {
                     type="email"
                     placeholder="your.email@example.com"
                     value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLoginEmail(e.target.value)}
                     required
                   />
                 </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="password">Password</Label>
-                    <Link
-                      href="/forgot-password"
-                      className="text-sm text-primary hover:underline"
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
-                  
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showLoginPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      required
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-0 top-0 h-full px-3"
-                      onClick={() => setShowLoginPassword(!showLoginPassword)}
-                    >
-                      {showLoginPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                      <span className="sr-only">
-                        {showLoginPassword ? "Hide password" : "Show password"}
-                      </span>
-                    </Button>
-                  </div>
-                </div>
-                
+                <PasswordInput
+                  label="Password"
+                  value={loginPassword}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLoginPassword(e.target.value)}
+                  showPassword={showLoginPassword}
+                  togglePasswordVisibility={() => setShowLoginPassword(!showLoginPassword)}
+                />
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="remember"
                     checked={rememberMe}
-                    onCheckedChange={(checked) => 
-                      setRememberMe(checked as boolean)
-                    }
+                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                   />
-                  <Label
-                    htmlFor="remember"
-                    className="text-sm font-normal"
-                  >
+                  <Label htmlFor="remember" className="text-sm font-normal">
                     Remember me for 30 days
                   </Label>
                 </div>
@@ -167,14 +216,12 @@ export default function LoginPage() {
             </form>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="register">
           <Card>
             <CardHeader>
               <CardTitle>Create an account</CardTitle>
-              <CardDescription>
-                Enter your details to create a new account
-              </CardDescription>
+              <CardDescription>Enter your details to create a new account</CardDescription>
             </CardHeader>
             
             <form onSubmit={handleRegister}>
@@ -185,7 +232,7 @@ export default function LoginPage() {
                     id="name"
                     placeholder="John Doe"
                     value={registerName}
-                    onChange={(e) => setRegisterName(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterName(e.target.value)}
                     required
                   />
                 </div>
@@ -197,81 +244,29 @@ export default function LoginPage() {
                     type="email"
                     placeholder="your.email@example.com"
                     value={registerEmail}
-                    onChange={(e) => setRegisterEmail(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterEmail(e.target.value)}
                     required
                   />
                 </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="register-password">Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="register-password"
-                      type={showRegisterPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      value={registerPassword}
-                      onChange={(e) => setRegisterPassword(e.target.value)}
-                      required
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-0 top-0 h-full px-3"
-                      onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                    >
-                      {showRegisterPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                      <span className="sr-only">
-                        {showRegisterPassword ? "Hide password" : "Show password"}
-                      </span>
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirm Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="confirm-password"
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      required
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-0 top-0 h-full px-3"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                      <span className="sr-only">
-                        {showConfirmPassword ? "Hide password" : "Show password"}
-                      </span>
-                    </Button>
-                  </div>
-                </div>
-                
+                <PasswordInput
+                  label="Password"
+                  value={registerPassword}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterPassword(e.target.value)}
+                  showPassword={showRegisterPassword}
+                  togglePasswordVisibility={() => setShowRegisterPassword(!showRegisterPassword)}
+                />
+                <PasswordInput
+                  label="Confirm Password"
+                  value={confirmPassword}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
+                  showPassword={showConfirmPassword}
+                  togglePasswordVisibility={() => setShowConfirmPassword(!showConfirmPassword)}
+                />
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                   By registering, you agree to our{" "}
-                  <Link href="/terms" className="text-primary hover:underline">
-                    Terms of Service
-                  </Link>{" "}
+                  <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>{" "}
                   and{" "}
-                  <Link href="/privacy" className="text-primary hover:underline">
-                    Privacy Policy
-                  </Link>
-                  .
+                  <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
                 </div>
               </CardContent>
               
