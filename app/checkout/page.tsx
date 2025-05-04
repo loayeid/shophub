@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { CheckCircle } from 'lucide-react'
@@ -13,13 +15,136 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useCart } from '@/context/cart-context'
 import { useToast } from '@/hooks/use-toast'
+import { useUser } from '@/context/user-context'
+import { Alert } from '@/components/ui/alert'
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+
+function StripePaymentSection({
+  userName,
+  userEmail,
+  onSuccess,
+  amount,
+  orderData
+}: {
+  userName: string;
+  userEmail: string;
+  onSuccess: () => void;
+  amount: number;
+  orderData: any;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [cardComplete, setCardComplete] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/checkout/payment-intent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount }),
+    })
+      .then(res => res.json())
+      .then(data => setClientSecret(data.clientSecret));
+  }, [amount]);
+
+  const handleStripePayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (!stripe || !elements || !clientSecret) {
+      setError('Please enter your card details.');
+      return;
+    }
+    setLoading(true);
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) return;
+    const { paymentIntent, error: stripeError } = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: { card: cardElement },
+    });
+    const cardLast4 = paymentIntent?.charges?.data?.[0]?.payment_method_details?.card?.last4 || '';
+    if (stripeError) {
+      setError(stripeError.message || 'Payment failed');
+      setLoading(false);
+      return;
+    }
+    if (paymentIntent && paymentIntent.status === 'succeeded') {
+      // Save order in DB
+      const res = await fetch('/api/checkout/save-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: orderData.userId,
+          userName,
+          userEmail,
+          cardLast4,
+          ...orderData,
+        }),
+      });
+      if (res.ok) {
+        onSuccess();
+      } else {
+        setError('Order saving failed');
+      }
+    }
+    setLoading(false);
+  };
+
+  return (
+    <form onSubmit={handleStripePayment} className="space-y-4">
+      <Label>Card Details</Label>
+      <div className="p-3 border rounded bg-gray-50 dark:bg-gray-900">
+        <CardElement
+          options={{ style: { base: { fontSize: '16px' } } }}
+          onChange={e => {
+            console.log('Card complete:', e.complete);
+            setCardComplete(e.complete);
+          }}
+        />
+      </div>
+      {error && <Alert variant="destructive">{error}</Alert>}
+      <Button type="submit" disabled={!stripe || loading} className="w-full">
+        {loading ? 'Processing...' : 'Pay Now'}
+      </Button>
+    </form>
+  );
+}
+
+function MinimalStripeForm() {
+  const stripe = useStripe();
+  const elements = useElements();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) return;
+    // No payment intent for this minimal test
+    alert('CardElement is working!');
+  };
+
+  return (
+    <form onSubmit={handleSubmit} style={{ maxWidth: 400, margin: '2rem auto', padding: 24, border: '1px solid #eee', borderRadius: 8 }}>
+      <h2 style={{ marginBottom: 16 }}>Test Stripe Card Input</h2>
+      <CardElement options={{ style: { base: { fontSize: '16px' } } }} />
+      <button type="submit" style={{ marginTop: 24, width: '100%', padding: 12, background: '#635bff', color: '#fff', border: 'none', borderRadius: 4 }}>
+        Test Card Input
+      </button>
+    </form>
+  );
+}
 
 export default function CheckoutPage() {
   const router = useRouter()
   const { cart, subtotal, clearCart } = useCart()
   const { toast } = useToast()
+  const { user } = useUser()
   const [isProcessing, setIsProcessing] = useState(false)
   const [orderComplete, setOrderComplete] = useState(false)
+  const [activeTab, setActiveTab] = useState('delivery');
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   
   // Calculate tax and total
   const tax = subtotal * 0.08 // 8% tax rate
@@ -28,6 +153,17 @@ export default function CheckoutPage() {
   
   // Form state
   const [shippingAddress, setShippingAddress] = useState({
+    firstName: '',
+    lastName: '',
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    postalCode: '',
+    country: 'US',
+    phone: '',
+  })
+  const [billingAddress, setBillingAddress] = useState({
     firstName: '',
     lastName: '',
     addressLine1: '',
@@ -99,7 +235,7 @@ export default function CheckoutPage() {
             Thank you for your purchase. Your order has been placed successfully.
           </p>
           <p className="text-gray-600 dark:text-gray-400 mb-8">
-            We've sent a confirmation email with your order details.
+            We&apos;ve sent a confirmation email with your order details.
           </p>
           <Button asChild>
             <Link href="/">Return to Home</Link>
@@ -116,7 +252,7 @@ export default function CheckoutPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <form onSubmit={handleSubmit}>
-            <Tabs defaultValue="delivery" className="mb-8">
+            <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="delivery" className="mb-8">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="delivery">Delivery</TabsTrigger>
                 <TabsTrigger value="payment">Payment</TabsTrigger>
@@ -218,7 +354,7 @@ export default function CheckoutPage() {
                 </div>
                 
                 <div className="flex justify-end">
-                  <Button onClick={() => document.querySelector('[data-value="payment"]')?.click()}>
+                  <Button type="button" onClick={() => setActiveTab('payment')}>
                     Continue to Payment
                   </Button>
                 </div>
@@ -274,29 +410,34 @@ export default function CheckoutPage() {
                   </RadioGroup>
                   
                   {paymentMethod === 'credit-card' && (
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="cardNumber">Card Number</Label>
-                        <Input id="cardNumber" placeholder="1234 5678 9012 3456" required />
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="expiration">Expiration (MM/YY)</Label>
-                          <Input id="expiration" placeholder="MM/YY" required />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="cvv">Security Code</Label>
-                          <Input id="cvv" placeholder="123" required />
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="nameOnCard">Name on Card</Label>
-                        <Input id="nameOnCard" required />
-                      </div>
-                    </div>
+                    <Elements stripe={stripePromise}>
+                      <StripePaymentSection
+                        userName={userName}
+                        userEmail={userEmail}
+                        amount={Math.round(total * 100)}
+                        orderData={{
+                          userId: user?.id,
+                          items: cart.map((item: any) => ({
+                            productId: item.id,
+                            productName: item.name,
+                            quantity: item.quantity,
+                            price: item.price,
+                          })),
+                          shippingAddress,
+                          billingAddress: sameAsShipping ? shippingAddress : billingAddress,
+                          paymentMethod: 'stripe',
+                          subtotal,
+                          tax,
+                          shipping,
+                          total,
+                        }}
+                        onSuccess={() => {
+                          clearCart();
+                          setOrderComplete(true);
+                          toast({ title: 'Payment successful!', description: 'Your order has been placed.' });
+                        }}
+                      />
+                    </Elements>
                   )}
                 </div>
                 
