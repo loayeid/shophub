@@ -88,6 +88,11 @@ const Header = () => {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+            <Link href="/admin/ai" className="ml-4">
+              <Button variant="ghost" className="px-2">
+                chatbot
+              </Button>
+            </Link>
           </div>
         </div>
         
@@ -188,6 +193,15 @@ const Header = () => {
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link 
+                  href="/admin/ai"
+                  className="block py-2 px-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  AI Tools
+                </Link>
+              </li>
               <li>
                 <Link 
                   href="/account"
