@@ -1,55 +1,56 @@
-'use client';
-import React, { createContext, useContext, useState, useEffect } from 'react'
+"use client";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 export interface AuthUser {
-  id: string
-  name: string
-  email: string
+  id: string;
+  name: string;
+  email: string;
+  role: string;
 }
 
 interface UserContextType {
-  user: AuthUser | null
-  setUser: (user: AuthUser | null) => void
-  loading: boolean
-  refreshUser: () => Promise<void>
+  user: AuthUser | null;
+  setUser: (user: AuthUser | null) => void;
+  loading: boolean;
+  refreshUser: () => Promise<void>;
 }
 
-const UserContext = createContext<UserContextType | undefined>(undefined)
+const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const refreshUser = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const res = await fetch('/api/auth/me', { credentials: 'include' })
+      const res = await fetch("/api/auth/me", { credentials: "include" });
       if (res.ok) {
-        const data = await res.json()
-        if (data.success) setUser(data.user)
-        else setUser(null)
+        const data = await res.json();
+        if (data.success) setUser(data.user);
+        else setUser(null);
       } else {
-        setUser(null)
+        setUser(null);
       }
     } catch {
-      setUser(null)
+      setUser(null);
     }
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    refreshUser()
-  }, [])
+    refreshUser();
+  }, []);
 
   return (
     <UserContext.Provider value={{ user, setUser, loading, refreshUser }}>
       {children}
     </UserContext.Provider>
-  )
+  );
 }
 
 export function useUser() {
-  const ctx = useContext(UserContext)
-  if (!ctx) throw new Error('useUser must be used within a UserProvider')
-  return ctx
+  const ctx = useContext(UserContext);
+  if (!ctx) throw new Error("useUser must be used within a UserProvider");
+  return ctx;
 }

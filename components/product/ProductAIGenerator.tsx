@@ -43,7 +43,7 @@ export default function ProductAIGenerator() {
       const res = await fetch('/api/ai/image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: imagePrompt || productName }),
+        body: JSON.stringify({ prompt: imagePrompt || `Name: ${productName}; Description: ${features}` }),
       });
       const data = await res.json();
       if (data.imageUrl) setImageUrl(data.imageUrl);

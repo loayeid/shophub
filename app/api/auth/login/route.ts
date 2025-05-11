@@ -22,12 +22,12 @@ export async function POST(req: NextRequest) {
 
   // Generate JWT and set as HTTP-only cookie
   const token = jwt.sign(
-    { id: user.id, name: user.name, email: user.email },
+    { id: user.id, name: user.name, email: user.email, role: user.role },
     process.env.NEXTAUTH_SECRET || 'default_secret',
     { expiresIn: '30d' }
   )
 
-  const response = NextResponse.json({ success: true, user: { id: user.id, name: user.name, email: user.email } })
+  const response = NextResponse.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role } })
   response.cookies.set('auth_token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

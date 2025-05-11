@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Checkbox } from '@/components/ui/checkbox'
 import { useToast } from '@/hooks/use-toast'
 import { useUser } from '@/context/user-context'
 
@@ -55,7 +54,6 @@ export default function LoginPage() {
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
   const [showLoginPassword, setShowLoginPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
   const [isLoginLoading, setIsLoginLoading] = useState(false)
 
   // Register form state
@@ -199,16 +197,6 @@ export default function LoginPage() {
                   showPassword={showLoginPassword}
                   togglePasswordVisibility={() => setShowLoginPassword(!showLoginPassword)}
                 />
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="remember"
-                    checked={rememberMe}
-                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                  />
-                  <Label htmlFor="remember" className="text-sm font-normal">
-                    Remember me for 30 days
-                  </Label>
-                </div>
               </CardContent>
               
               <CardFooter>

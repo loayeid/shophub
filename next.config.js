@@ -10,6 +10,7 @@ const nextConfig = {
       'cdn.pixabay.com',
       'via.placeholder.com',
       'images.pexels.com',
+      'oaidalleapiprodscus.blob.core.windows.net'
     ],
   },
   experimental: {

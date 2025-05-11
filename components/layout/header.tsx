@@ -13,7 +13,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useCart } from '@/context/cart-context'
-import LanguageSelector from '@/components/layout/language-selector'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useUser } from '@/context/user-context'
@@ -88,9 +87,14 @@ const Header = () => {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-            <Link href="/admin/ai" className="ml-4">
+            <Link href="/ai" className="ml-4">
               <Button variant="ghost" className="px-2">
-                chatbot
+                Chatbot
+              </Button>
+            </Link>
+            <Link href="/admin/orders" className="ml-4">
+              <Button variant="ghost" className="px-2">
+                Dashboard
               </Button>
             </Link>
           </div>
@@ -112,7 +116,6 @@ const Header = () => {
         </div>
         
         <div className="flex items-center space-x-1">
-          <LanguageSelector />
           {loading ? null : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

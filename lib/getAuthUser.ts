@@ -4,7 +4,6 @@ import { cookies } from 'next/headers';
 
 function getAuthUser() {
   const cookieStore = cookies();
-  console.log("Cookies:", cookieStore.getAll());
   
   const token = cookieStore.get("auth_token")?.value;
   if (!token) return null;

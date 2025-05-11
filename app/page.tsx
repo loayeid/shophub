@@ -112,49 +112,6 @@ export default async function Home() {
           <ProductCarousel products={deals} />
         </div>
       </section>
-      
-      {/* Promotion banner */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="relative rounded-xl overflow-hidden">
-            <div className="absolute inset-0 z-0">
-              <Image
-                src="https://images.pexels.com/photos/5632398/pexels-photo-5632398.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-                alt="Promotion background"
-                fill
-                style={{ objectFit: 'cover' }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/70 to-blue-700/70" />
-            </div>
-            
-            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between p-8 md:p-12">
-              <div className="text-white mb-6 md:mb-0 text-center md:text-left">
-                <h2 className="text-2xl md:text-4xl font-bold mb-4">Free Shipping on Orders Over $50</h2>
-                <p className="text-lg mb-6">Limited time offer. Don't miss out!</p>
-                <Button size="lg" variant="secondary" asChild>
-                  <Link href="/search">Shop Now</Link>
-                </Button>
-              </div>
-              
-              <div className="flex-shrink-0 w-full md:w-1/3 max-w-sm">
-                <div className="bg-white/90 dark:bg-gray-800/90 p-6 rounded-lg">
-                  <h3 className="text-xl font-bold mb-4">Sign up for our newsletter</h3>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4">Get the latest updates on new products and upcoming sales.</p>
-                  <form className="space-y-4">
-                    <input 
-                      type="email" 
-                      placeholder="Your email address" 
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md"
-                      required
-                    />
-                    <Button type="submit" className="w-full">Subscribe</Button>
-                  </form>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   )
 }
