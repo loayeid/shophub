@@ -133,37 +133,7 @@ export default function AccountPage() {
             </div>
             
             <Separator className="mb-4" />
-            
             <nav className="space-y-1">
-              <Button variant="ghost" className="w-full justify-start" asChild>
-                <Link href="#profile">
-                  <User className="mr-2 h-4 w-4" />
-                  Profile
-                </Link>
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" asChild>
-                <Link href="#orders">
-                  <ShoppingBag className="mr-2 h-4 w-4" />
-                  Orders
-                </Link>
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" asChild>
-                <Link href="#addresses">
-                  <MapPin className="mr-2 h-4 w-4" />
-                  Addresses
-                </Link>
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" asChild>
-                <Link href="#payment-methods">
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Payment Methods
-                </Link>
-              </Button>
-              <Separator className="my-2" />
-              <Button variant="ghost" className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20">
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
-              </Button>
             </nav>
           </div>
         </div>

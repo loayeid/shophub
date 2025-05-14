@@ -10,7 +10,8 @@ const nextConfig = {
       'cdn.pixabay.com',
       'via.placeholder.com',
       'images.pexels.com',
-      'oaidalleapiprodscus.blob.core.windows.net'
+      'oaidalleapiprodscus.blob.core.windows.net',
+      'www.google.com', // allow Google images
     ],
   },
   experimental: {

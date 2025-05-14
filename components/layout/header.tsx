@@ -97,6 +97,13 @@ const Header = () => {
                 Dashboard
               </Button>
             </Link>
+            {user && user.role === "admin" && (
+              <Link href="/admin/dashboard" className="ml-4">
+                <Button variant="ghost" className="px-2 text-red-600 font-semibold">
+                  Admin Dashboard
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
         
@@ -205,6 +212,17 @@ const Header = () => {
                   AI Tools
                 </Link>
               </li>
+              {user && user.role === "admin" && (
+                <li>
+                  <Link 
+                    href="/admin/dashboard"
+                    className="block py-2 px-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md text-red-600 font-semibold"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Admin Dashboard
+                  </Link>
+                </li>
+              )}
               <li>
                 <Link 
                   href="/account"
