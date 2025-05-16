@@ -13,16 +13,22 @@ export async function POST(req: NextRequest) {
   ) {
     return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
   }
-  const { name, slug, description, price, originalPrice, images, categoryId, stock, features, specifications } = await req.json();
+  const body = await req.json();
+  console.log('Received product data:', body); // Debug log
+  const { name, slug, description, price, originalPrice, images, categoryId, stock, features, specifications } = body;
   if (!name || !slug || !price || !categoryId || !stock) {
-    return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
+    return NextResponse.json({ success: false, message: 'Missing required fields', debug: { name, slug, price, categoryId, stock } }, { status: 400 });
   }
   const id = uuidv4();
-  await query('INSERT INTO products (id, name, slug, description, price, original_price, category_id, stock, features, specifications) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [id, name, slug, description, price, originalPrice, categoryId, stock, JSON.stringify(features || []), JSON.stringify(specifications || {})]);
-  if (images && images.length > 0) {
-    for (let i = 0; i < images.length; i++) {
-      await query('INSERT INTO product_images (product_id, url, position) VALUES (?, ?, ?)', [id, images[i], i]);
+  try {
+    await query('INSERT INTO products (id, name, slug, description, price, original_price, category_id, stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [id, name, slug, description, price, originalPrice, categoryId, stock]);
+    if (images && images.length > 0) {
+      for (let i = 0; i < images.length; i++) {
+        await query('INSERT INTO product_images (product_id, url, position) VALUES (?, ?, ?)', [id, images[i], i]);
+      }
     }
+    return NextResponse.json({ success: true, id, message: 'Product added successfully' });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, message: error.message || 'Database error' }, { status: 500 });
   }
-  return NextResponse.json({ success: true, id });
 }
