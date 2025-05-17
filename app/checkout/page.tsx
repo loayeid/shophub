@@ -73,9 +73,11 @@ function StripePaymentSection({
       await stripe.confirmCardPayment(clientSecret, {
         payment_method: { card: cardElement },
       });
-    const cardLast4 =
-      paymentIntent?.charges?.data?.[0]?.payment_method_details?.card?.last4 ||
-      "";
+    // Stripe.js PaymentIntent does not expose charges; get last4 from cardElement if needed
+    let cardLast4 = "";
+    if (cardElement && "brand" in cardElement && "last4" in cardElement) {
+      cardLast4 = (cardElement as any).last4 || "";
+    }
     if (stripeError) {
       setError(stripeError.message || "Payment failed");
       setLoading(false);
@@ -241,9 +243,7 @@ export default function CheckoutPage() {
             userId: user?.id,
             userName,
             userEmail,
-            cardLast4:
-              paymentIntent.charges?.data?.[0]?.payment_method_details?.card
-                ?.last4 || "",
+            cardLast4: "", // Stripe.js PaymentIntent does not expose last4; handled in StripePaymentSection
             items: cart.map((item: any) => ({
               productId: item.id,
               productName: item.name,
@@ -496,6 +496,10 @@ export default function CheckoutPage() {
                       <RadioGroupItem value="paypal" id="paypal" />
                       <Label htmlFor="paypal">PayPal</Label>
                     </div>
+                    <div className="flex items-center space-x-2 mb-3">
+                      <RadioGroupItem value="cod" id="cod" />
+                      <Label htmlFor="cod">Cash on Delivery</Label>
+                    </div>
                   </RadioGroup>
 
                   {paymentMethod === "credit-card" && (
@@ -532,6 +536,59 @@ export default function CheckoutPage() {
                         }}
                       />
                     </Elements>
+                  )}
+
+                  {paymentMethod === "cod" && (
+                    <div className="space-y-4">
+                      <Alert variant="default">You will pay with cash when your order is delivered.</Alert>
+                      <Button
+                        type="button"
+                        className="w-full"
+                        disabled={isProcessing}
+                        onClick={async () => {
+                          setIsProcessing(true);
+                          const res = await fetch("/api/checkout/save-order", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              userId: user?.id,
+                              userName,
+                              userEmail,
+                              items: cart.map((item: any) => ({
+                                productId: item.id,
+                                productName: item.name,
+                                quantity: item.quantity,
+                                price: item.price,
+                              })),
+                              shippingAddress,
+                              billingAddress: sameAsShipping ? shippingAddress : billingAddress,
+                              paymentMethod: "cash_on_delivery",
+                              subtotal,
+                              tax,
+                              shipping,
+                              total,
+                            }),
+                          });
+                          if (res.ok) {
+                            clearCart();
+                            setOrderComplete(true);
+                            toast({
+                              title: "Order placed!",
+                              description: "Your order has been placed and will be paid on delivery.",
+                            });
+                          } else {
+                            toast({
+                              title: "Error",
+                              description: "Failed to save the order.",
+                              variant: "destructive",
+                            });
+                          }
+                          setIsProcessing(false);
+                        }}
+                      >
+                        {isProcessing ? "Placing Order..." : "Place Order"}
+                      </Button>
+                    </div>
                   )}
                 </div>
               </TabsContent>

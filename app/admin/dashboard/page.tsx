@@ -188,6 +188,23 @@ export default function AdminDashboard() {
     setStaffLoading(false);
   }
 
+  async function handleRemoveStaff(userId: string) {
+    if (!confirm('Are you sure you want to remove this staff member?')) return;
+    setStaffLoading(true);
+    const res = await fetch('/api/admin/staff', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId })
+    });
+    if (res.ok) {
+      setStaff(s => s.filter(u => u.id !== userId));
+      toast({ title: 'Staff removed' });
+    } else {
+      toast({ title: 'Error', description: 'Failed to remove staff', variant: 'destructive' });
+    }
+    setStaffLoading(false);
+  }
+
   // Filtered lists
   const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchProduct.toLowerCase()));
   const filteredCategories = categories.filter(c => c.name.toLowerCase().includes(searchCategory.toLowerCase()));
@@ -432,7 +449,13 @@ export default function AdminDashboard() {
                         <option value="admin">Admin</option>
                       </select>
                     </td>
-                    <td className="px-4 py-2 border">{u.role === 'admin' ? '—' : <Button size="sm" variant="destructive" disabled>Remove</Button>}</td>
+                    <td className="px-4 py-2 border">
+                      {u.role === 'manager' ? (
+                        <Button size="sm" variant="destructive" onClick={() => handleRemoveStaff(u.id)}>Remove</Button>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
                   </tr>
                 ))
               ) : (

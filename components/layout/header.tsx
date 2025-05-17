@@ -92,11 +92,13 @@ const Header = () => {
                 Chatbot
               </Button>
             </Link>
-            <Link href="/admin/orders" className="ml-4">
-              <Button variant="ghost" className="px-2">
-                Dashboard
-              </Button>
-            </Link>
+            {user && user.role === "admin" && (
+              <Link href="/admin/orders" className="ml-4">
+                <Button variant="ghost" className="px-2">
+                  Dashboard
+                </Button>
+              </Link>
+            )}
             {user && user.role === "admin" && (
               <Link href="/admin/dashboard" className="ml-4">
                 <Button variant="ghost" className="px-2 text-red-600 font-semibold">
@@ -212,6 +214,17 @@ const Header = () => {
                   AI Tools
                 </Link>
               </li>
+              {user && user.role === "admin" && (
+                <li>
+                  <Link 
+                    href="/admin/orders"
+                    className="block py-2 px-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md font-semibold"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                </li>
+              )}
               {user && user.role === "admin" && (
                 <li>
                   <Link 

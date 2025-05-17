@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
 
+// Helper to ensure no undefined values are passed to SQL
+function safe(val: any) {
+  return val === undefined ? null : val;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -33,35 +38,35 @@ export async function POST(req: NextRequest) {
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         orderId,
-        userId,
-        userName,
-        userEmail,
-        paymentMethod,
-        cardLast4,
-        subtotal,
-        tax,
-        shipping,
-        total,
-        status,
-        createdAt,
-        shippingAddress.firstName,
-        shippingAddress.lastName,
-        shippingAddress.addressLine1,
-        shippingAddress.addressLine2 || '',
-        shippingAddress.city,
-        shippingAddress.state,
-        shippingAddress.postalCode,
-        shippingAddress.country,
-        shippingAddress.phone,
-        billingAddress.firstName,
-        billingAddress.lastName,
-        billingAddress.addressLine1,
-        billingAddress.addressLine2 || '',
-        billingAddress.city,
-        billingAddress.state,
-        billingAddress.postalCode,
-        billingAddress.country,
-        billingAddress.phone,
+        safe(userId),
+        safe(userName),
+        safe(userEmail),
+        safe(paymentMethod),
+        safe(cardLast4),
+        safe(subtotal),
+        safe(tax),
+        safe(shipping),
+        safe(total),
+        safe(status),
+        safe(createdAt),
+        safe(shippingAddress?.firstName),
+        safe(shippingAddress?.lastName),
+        safe(shippingAddress?.addressLine1),
+        safe(shippingAddress?.addressLine2),
+        safe(shippingAddress?.city),
+        safe(shippingAddress?.state),
+        safe(shippingAddress?.postalCode),
+        safe(shippingAddress?.country),
+        safe(shippingAddress?.phone),
+        safe(billingAddress?.firstName),
+        safe(billingAddress?.lastName),
+        safe(billingAddress?.addressLine1),
+        safe(billingAddress?.addressLine2),
+        safe(billingAddress?.city),
+        safe(billingAddress?.state),
+        safe(billingAddress?.postalCode),
+        safe(billingAddress?.country),
+        safe(billingAddress?.phone),
       ]
     );
 

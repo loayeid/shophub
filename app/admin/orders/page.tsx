@@ -11,6 +11,7 @@ interface Order {
   user_id?: string | number;
   total: number;
   status: string;
+  payment_method?: string;
   createdAt?: string;
   created_at?: string;
 }
@@ -44,13 +45,14 @@ export default function AdminOrdersPage() {
               <th className="px-4 py-2 border">User ID</th>
               <th className="px-4 py-2 border">Total</th>
               <th className="px-4 py-2 border">Status</th>
+              <th className="px-4 py-2 border">Payment Method</th>
               <th className="px-4 py-2 border">Created At</th>
               <th className="px-4 py-2 border">Details</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} className="text-center py-4">Loading...</td></tr>
+              <tr><td colSpan={7} className="text-center py-4">Loading...</td></tr>
             ) : orders.length > 0 ? (
               orders.map((order) => (
                 <tr key={order.id}>
@@ -58,6 +60,7 @@ export default function AdminOrdersPage() {
                   <td className="px-4 py-2 border">{order.userId || order.user_id}</td>
                   <td className="px-4 py-2 border">${order.total}</td>
                   <td className="px-4 py-2 border">{order.status}</td>
+                  <td className="px-4 py-2 border">{order.payment_method}</td>
                   <td className="px-4 py-2 border">{order.createdAt || order.created_at}</td>
                   <td className="px-4 py-2 border">
                     <Button size="sm" variant="outline" onClick={() => setSelectedOrder(order)}>
@@ -68,7 +71,7 @@ export default function AdminOrdersPage() {
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="text-center py-4">No orders found.</td>
+                <td colSpan={7} className="text-center py-4">No orders found.</td>
               </tr>
             )}
           </tbody>
@@ -85,6 +88,7 @@ export default function AdminOrdersPage() {
               <div><b>User ID:</b> {selectedOrder.userId || selectedOrder.user_id}</div>
               <div><b>Status:</b> {selectedOrder.status}</div>
               <div><b>Total:</b> ${selectedOrder.total}</div>
+              <div><b>Payment Method:</b> {selectedOrder.payment_method}</div>
               <div><b>Created At:</b> {selectedOrder.createdAt || selectedOrder.created_at}</div>
             </div>
             <DialogFooter>
