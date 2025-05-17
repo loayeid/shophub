@@ -13,6 +13,7 @@ const nextConfig = {
       'oaidalleapiprodscus.blob.core.windows.net',
       'www.google.com', // allow Google images
       'media.istockphoto.com', // allow iStockPhoto images
+      'placehold.co', // allow placeholder images
     ],
   },
   experimental: {

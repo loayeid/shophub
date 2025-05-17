@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { StaffUser } from '@/types';
 
 export default function AdminDashboard() {
   const { user } = useUser();
@@ -15,6 +16,9 @@ export default function AdminDashboard() {
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [staff, setStaff] = useState<StaffUser[]>([]);
+  const [staffLoading, setStaffLoading] = useState(true);
+  const [inviteForm, setInviteForm] = useState({ name: '', email: '', role: 'manager' });
 
   // Product form state
   const [productForm, setProductForm] = useState({
@@ -71,6 +75,12 @@ export default function AdminDashboard() {
     setCategories(Array.isArray(catData) ? catData : catData.categories || []);
     setLoading(false);
   }
+
+  useEffect(() => {
+    fetch('/api/admin/staff')
+      .then(res => res.json())
+      .then(data => { setStaff(data.staff || []); setStaffLoading(false); });
+  }, []);
 
   async function handleAddProduct(e: React.FormEvent) {
     e.preventDefault();
@@ -141,6 +151,41 @@ export default function AdminDashboard() {
     } else {
       toast({ title: "Error", description: "Failed to remove category", variant: "destructive" });
     }
+  }
+
+  async function handleInviteStaff(e: React.FormEvent) {
+    e.preventDefault();
+    setStaffLoading(true);
+    const res = await fetch('/api/admin/staff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(inviteForm)
+    });
+    if (res.ok) {
+      setInviteForm({ name: '', email: '', role: 'manager' });
+      const { staff: newStaff } = await res.json();
+      setStaff(s => [...s, newStaff]);
+      toast({ title: 'Staff invited' });
+    } else {
+      toast({ title: 'Error', description: 'Failed to invite staff', variant: 'destructive' });
+    }
+    setStaffLoading(false);
+  }
+
+  async function handleRoleChange(userId: string, role: 'admin'|'manager') {
+    setStaffLoading(true);
+    const res = await fetch('/api/admin/staff', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, role })
+    });
+    if (res.ok) {
+      setStaff(s => s.map(u => u.id === userId ? { ...u, role } : u));
+      toast({ title: 'Role updated' });
+    } else {
+      toast({ title: 'Error', description: 'Failed to update role', variant: 'destructive' });
+    }
+    setStaffLoading(false);
   }
 
   // Filtered lists
@@ -245,6 +290,10 @@ export default function AdminDashboard() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <h1 className="text-3xl font-bold mb-8 text-center">Admin Dashboard</h1>
+      <div className="mb-6 flex gap-4">
+        <Button onClick={() => router.push('/admin/dashboard/analytics')} variant="outline">View Analytics</Button>
+        {/* You can add more quick links here */}
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Product Management */}
         <div>
@@ -345,6 +394,53 @@ export default function AdminDashboard() {
             </div>
           </Card>
         </div>
+      </div>
+      <div className="mt-12">
+        <h2 className="text-2xl font-semibold mb-4">Staff & Manager Control</h2>
+        <Card className="p-6 mb-6">
+          <form className="flex flex-wrap gap-2 items-end" onSubmit={handleInviteStaff}>
+            <Input required placeholder="Name" value={inviteForm.name} onChange={e => setInviteForm(f => ({ ...f, name: e.target.value }))} />
+            <Input required type="email" placeholder="Email" value={inviteForm.email} onChange={e => setInviteForm(f => ({ ...f, email: e.target.value }))} />
+            <select className="border rounded px-2 py-1" value={inviteForm.role} onChange={e => setInviteForm(f => ({ ...f, role: e.target.value as 'admin'|'manager' }))}>
+              <option value="manager">Manager</option>
+              <option value="admin">Admin</option>
+            </select>
+            <Button type="submit">Invite Staff</Button>
+          </form>
+        </Card>
+        <Card className="p-6">
+          <table className="min-w-full bg-white border border-gray-200">
+            <thead>
+              <tr>
+                <th className="px-4 py-2 border">Name</th>
+                <th className="px-4 py-2 border">Email</th>
+                <th className="px-4 py-2 border">Role</th>
+                <th className="px-4 py-2 border">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {staffLoading ? (
+                <tr><td colSpan={4} className="text-center py-4">Loading...</td></tr>
+              ) : staff.length ? (
+                staff.map(u => (
+                  <tr key={u.id}>
+                    <td className="px-4 py-2 border">{u.name}</td>
+                    <td className="px-4 py-2 border">{u.email}</td>
+                    <td className="px-4 py-2 border">
+                      <select value={u.role} onChange={e => handleRoleChange(u.id, e.target.value as 'admin'|'manager')} className="border rounded px-2 py-1">
+                        <option value="manager">Manager</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    </td>
+                    <td className="px-4 py-2 border">{u.role === 'admin' ? '—' : <Button size="sm" variant="destructive" disabled>Remove</Button>}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr><td colSpan={4} className="text-center py-4">No staff found</td></tr>
+              )}
+            </tbody>
+          </table>
+        </Card>
       </div>
       {/* Confirmation Dialog */}
       <Dialog open={confirmDialog.open} onOpenChange={open => { if (!open) closeConfirm(); }}>

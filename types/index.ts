@@ -80,3 +80,26 @@ export interface Address {
 }
 
 export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded'
+
+// Discount code type for admin UI
+export interface DiscountCode {
+  id: string;
+  code: string;
+  type: 'percentage' | 'fixed';
+  value: number;
+  minOrder?: number;
+  maxDiscount?: number;
+  startDate?: string;
+  endDate?: string;
+  usageLimit?: number;
+  active: boolean;
+  createdAt?: string;
+}
+
+// StaffUser type for staff/manager management UI
+export interface StaffUser {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'manager';
+}

@@ -121,7 +121,7 @@ export default async function ProductPage({
               
               {isOnSale && (
                 <span className="ml-3 text-lg text-gray-500 line-through">
-                  ${(+product.originalPrice as number)?.toFixed(2)}
+                  ${typeof product.originalPrice === 'number' ? product.originalPrice.toFixed(2) : '0.00'}
                 </span>
               )}
             </div>
@@ -215,7 +215,32 @@ export default async function ProductPage({
           <TabsContent value="reviews" className="py-6">
             <div className="space-y-8">
               <h3 className="text-xl font-bold mb-6">Customer Reviews</h3>
-              
+              {/* Review Form */}
+              <div className="mb-8">
+                <form action="/api/review/add" method="POST" className="space-y-4 bg-gray-50 dark:bg-gray-900 p-4 rounded border">
+                  <div>
+                    <label className="block font-medium mb-1">Your Name</label>
+                    <input name="userName" className="w-full border rounded p-2" required />
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1">Rating</label>
+                    <select name="rating" className="w-full border rounded p-2" required>
+                      <option value="">Select rating</option>
+                      {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1">Title</label>
+                    <input name="title" className="w-full border rounded p-2" required />
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1">Review</label>
+                    <textarea name="content" className="w-full border rounded p-2" rows={3} required />
+                  </div>
+                  <input type="hidden" name="productId" value={product.id} />
+                  <button type="submit" className="bg-primary text-white px-4 py-2 rounded">Submit Review</button>
+                </form>
+              </div>
               {reviews.length > 0 ? (
                 <div className="space-y-6">
                   {reviews.map(review => (
