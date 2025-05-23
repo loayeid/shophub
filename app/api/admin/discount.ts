@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   const id = uuidv4();
   try {
     await query(
-      'INSERT INTO discount_codes (id, code, type, value, min_order, max_discount, start_date, end_date, usage_limit, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO discounts (id, code, type, value, min_order, max_discount, start_date, end_date, usage_limit, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [id, code, type, value, minOrder, maxDiscount, startDate, endDate, usageLimit, active ? 1 : 0]
     );
     return NextResponse.json({ success: true, id, message: 'Discount code created' });
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 // GET: List all discount codes
 export async function GET() {
   try {
-    const codes = await query('SELECT * FROM discount_codes ORDER BY created_at DESC');
+    const codes = await query('SELECT * FROM discounts ORDER BY created_at DESC');
     return NextResponse.json({ codes });
   } catch (error: any) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
@@ -48,7 +48,7 @@ export async function PATCH(req: NextRequest) {
   const updates = Object.keys(fields).map(key => `${key}=?`).join(', ');
   const values = Object.values(fields);
   try {
-    await query(`UPDATE discount_codes SET ${updates} WHERE id=?`, [...values, id]);
+    await query(`UPDATE discounts SET ${updates} WHERE id=?`, [...values, id]);
     return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
@@ -66,7 +66,7 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ success: false, message: 'Missing id' }, { status: 400 });
   }
   try {
-    await query('DELETE FROM discount_codes WHERE id=?', [id]);
+    await query('DELETE FROM discounts WHERE id=?', [id]);
     return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });

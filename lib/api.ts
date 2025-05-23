@@ -1,19 +1,43 @@
 'use server';
 
-import { Product, Category, Review } from '@/types'
+import { Product, Category, Review, DiscountCode } from '@/types'
 import { query, queryOne } from './db'
 import { parseImages } from './utils';
 
-// Fetch all products from the database
-export async function getProducts(): Promise<Product[]> {
+// Fetch all products from the database, with optional filters
+export async function getProducts(filters: any = {}): Promise<Product[]> {
+  let where: string[] = [];
+  let params: any[] = [];
+  if (filters.brand) {
+    where.push('p.brand = ?');
+    params.push(filters.brand);
+  }
+  if (filters.minPrice) {
+    where.push('p.price >= ?');
+    params.push(filters.minPrice);
+  }
+  if (filters.maxPrice) {
+    where.push('p.price <= ?');
+    params.push(filters.maxPrice);
+  }
+  if (filters.rating) {
+    where.push('p.rating >= ?');
+    params.push(filters.rating);
+  }
+  if (filters.shippingSpeed) {
+    where.push('p.shipping_speed = ?');
+    params.push(filters.shippingSpeed);
+  }
+  const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
   const rows = await query(`
     SELECT p.*, c.id as categoryId, c.name as categoryName, c.slug as categorySlug, c.image as categoryImage, c.description as categoryDescription,
     GROUP_CONCAT(pi.url ORDER BY pi.position) AS images
     FROM products p
     JOIN categories c ON p.category_id = c.id
     LEFT JOIN product_images pi ON p.id = pi.product_id
+    ${whereClause}
     GROUP BY p.id
-  `);
+  `, params);
   return (rows as any[]).map(row => ({
     id: String(row.id),
     name: row.name,
@@ -290,5 +314,23 @@ export async function getDeals(limit = 6): Promise<Product[]> {
     features: row.features ? JSON.parse(row.features) : [],
     specifications: row.specifications ? JSON.parse(row.specifications) : {},
     relatedProducts: row.related_products ? JSON.parse(row.related_products) : [],
+  }));
+}
+
+// Fetch active discount codes for display (e.g., on homepage)
+export async function getActiveDiscountCodes(): Promise<DiscountCode[]> {
+  const rows = await query('SELECT * FROM discounts WHERE active = 1 AND (start_date IS NULL OR start_date <= NOW()) AND (end_date IS NULL OR end_date >= NOW()) ORDER BY created_at DESC');
+  return (rows as any[]).map((row: any) => ({
+    id: row.id,
+    code: row.code,
+    type: row.type,
+    value: row.value,
+    minOrder: row.min_order,
+    maxDiscount: row.max_discount,
+    startDate: row.start_date,
+    endDate: row.end_date,
+    usageLimit: row.usage_limit,
+    active: !!row.active,
+    createdAt: row.created_at,
   }));
 }

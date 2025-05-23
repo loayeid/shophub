@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Product } from '@/types'
 import { useCart } from '@/context/cart-context'
 import { useToast } from '@/hooks/use-toast'
+import WishlistButton from './wishlist-button'
 
 interface ProductCardProps {
   product: Product
@@ -55,6 +56,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
           }}
         />
         
+        {/* Wishlist Button (only for logged-in users) */}
+        <WishlistButton productId={product.id} />
+        
         {isOnSale && (
           <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
             -{discountPercentage}%
@@ -96,10 +100,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
         
         <div className="flex items-end">
           <span className="text-lg font-semibold">${(+product.price).toFixed(2)}</span>
-          
-          {isOnSale && (
+          {isOnSale && product.originalPrice !== undefined && (
             <span className="text-sm text-gray-500 dark:text-gray-400 line-through ml-2">
-              ${(+product.originalPrice as number).toFixed(2)}
+              ${(+product.originalPrice).toFixed(2)}
             </span>
           )}
         </div>

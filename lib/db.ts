@@ -59,3 +59,35 @@ export async function inviteStaff({ name, email, role }: { name: string; email: 
   await query(sql, [id, name, email, role]);
   return { id, name, email, role };
 }
+
+// Wishlist DB helpers
+export async function getWishlist(userId: string) {
+  return await query(
+    `SELECT w.id, w.productId, p.* FROM wishlist w JOIN products p ON w.productId = p.id WHERE w.userId = ?`,
+    [userId]
+  );
+}
+
+export async function isInWishlist(userId: string, productId: string) {
+  return await queryOne(
+    `SELECT * FROM wishlist WHERE userId = ? AND productId = ?`,
+    [userId, productId]
+  );
+}
+
+export async function addToWishlist(userId: string, productId: string) {
+  const id = uuidv4();
+  await query(
+    `INSERT INTO wishlist (id, userId, productId) VALUES (?, ?, ?)`,
+    [id, userId, productId]
+  );
+  return { id, userId, productId };
+}
+
+export async function removeFromWishlist(userId: string, productId: string) {
+  await query(
+    `DELETE FROM wishlist WHERE userId = ? AND productId = ?`,
+    [userId, productId]
+  );
+  return { success: true };
+}

@@ -38,27 +38,44 @@ export default function SearchPage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000])
   const [sortOption, setSortOption] = useState('relevance')
-  
-  // Fetch products and categories
+  const [brands, setBrands] = useState<string[]>([])
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([])
+  const [selectedRating, setSelectedRating] = useState<number | null>(null)
+
+  // Fetch brands from products
+  useEffect(() => {
+    if (products.length > 0) {
+      const uniqueBrands = Array.from(new Set(products.map(p => (p as any).brand).filter(Boolean)))
+      setBrands(uniqueBrands)
+    }
+  }, [products])
+
+  // Fetch products and categories (with filters)
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
       try {
-        // Fetch categories regardless of search
         const categoryData = await getCategories()
         setCategories(categoryData)
-        
-        // Fetch products based on search query
+
+        // Build query params for backend faceted search
+        const params = new URLSearchParams()
+        if (selectedBrands.length > 0) params.set('brand', selectedBrands[0]) // Only one brand for now
+        if (priceRange[0] !== 0) params.set('minPrice', String(priceRange[0]))
+        if (priceRange[1] !== 1000) params.set('maxPrice', String(priceRange[1]))
+        if (selectedRating) params.set('rating', String(selectedRating))
+        // TODO: Add shippingSpeed if needed
+        let url = '/api/products'
+        if (params.toString()) url += `?${params.toString()}`
         let productData: Product[]
         if (initialQuery) {
+          // If searching, use searchProducts (client-side filter for now)
           productData = await searchProducts(initialQuery)
         } else {
-          productData = await getProducts()
+          const res = await fetch(url)
+          productData = await res.json()
         }
-        
         setProducts(productData)
-        
-        // Set initial price range based on products
         if (productData.length > 0) {
           const prices = productData.map(p => p.price)
           const minPrice = Math.floor(Math.min(...prices))
@@ -71,10 +88,9 @@ export default function SearchPage() {
         setLoading(false)
       }
     }
-    
     fetchData()
-  }, [initialQuery])
-  
+  }, [initialQuery, selectedBrands, priceRange, selectedRating])
+
   // Handle search form submission
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -99,6 +115,16 @@ export default function SearchPage() {
         : [...prev, categoryId]
     )
   }
+
+  // Brand filter toggle
+  const toggleBrand = (brand: string) => {
+    setSelectedBrands(prev => prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand])
+  }
+
+  // Rating filter
+  const handleRatingChange = (rating: number) => {
+    setSelectedRating(rating === selectedRating ? null : rating)
+  }
   
   // Filter and sort products
   const filteredAndSortedProducts = products
@@ -110,6 +136,14 @@ export default function SearchPage() {
     .filter(product => 
       product.price >= priceRange[0] && product.price <= priceRange[1]
     )
+    // Restrict search to only products and categories
+    .filter(product => {
+      if (!query.trim()) return true;
+      const q = query.trim().toLowerCase();
+      const inProduct = product.name.toLowerCase().includes(q);
+      const inCategory = product.category.name.toLowerCase().includes(q);
+      return inProduct || inCategory;
+    })
     // Apply sorting
     .sort((a, b) => {
       switch (sortOption) {
@@ -198,6 +232,42 @@ export default function SearchPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Brand filter */}
+              <div>
+                <h3 className="font-medium mb-3">Brand</h3>
+                <div className="space-y-2">
+                  {brands.map(brand => (
+                    <div key={brand} className="flex items-center">
+                      <Checkbox
+                        id={`brand-${brand}`}
+                        checked={selectedBrands.includes(brand)}
+                        onCheckedChange={() => toggleBrand(brand)}
+                      />
+                      <label htmlFor={`brand-${brand}`} className="ml-2 text-sm font-medium leading-none">
+                        {brand}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Rating filter */}
+              <div>
+                <h3 className="font-medium mb-3">Rating</h3>
+                <div className="flex gap-2">
+                  {[5,4,3,2,1].map(rating => (
+                    <Button
+                      key={rating}
+                      variant={selectedRating === rating ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => handleRatingChange(rating)}
+                    >
+                      {rating}★
+                    </Button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -261,6 +331,42 @@ export default function SearchPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Brand filter */}
+                <div>
+                  <h3 className="font-medium mb-3">Brand</h3>
+                  <div className="space-y-2">
+                    {brands.map(brand => (
+                      <div key={brand} className="flex items-center">
+                        <Checkbox
+                          id={`mobile-brand-${brand}`}
+                          checked={selectedBrands.includes(brand)}
+                          onCheckedChange={() => toggleBrand(brand)}
+                        />
+                        <label htmlFor={`mobile-brand-${brand}`} className="ml-2 text-sm font-medium leading-none">
+                          {brand}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Rating filter */}
+                <div>
+                  <h3 className="font-medium mb-3">Rating</h3>
+                  <div className="flex gap-2">
+                    {[5,4,3,2,1].map(rating => (
+                      <Button
+                        key={rating}
+                        variant={selectedRating === rating ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handleRatingChange(rating)}
+                      >
+                        {rating}★
+                      </Button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </SheetContent>
           </Sheet>
@@ -317,7 +423,7 @@ export default function SearchPage() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-600 dark:text-gray-400 mb-4">No products found matching your criteria.</p>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">No products or categories found.</p>
               <Button 
                 variant="outline" 
                 onClick={() => {

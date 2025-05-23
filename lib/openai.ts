@@ -1,5 +1,6 @@
+import OpenAI from 'openai';
 import axios from "axios";
-import OpenAI from "openai";
+
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_API_URL = "https://api.openai.com/v1";
@@ -127,7 +128,7 @@ export async function generateImage(prompt: string) {
     size: "512x512",
   });
 
-  const imageUrl = response.data[0].url;
+  const imageUrl = response.data && response.data.length > 0 ? response.data[0].url : undefined;
   return imageUrl;
   // if (!PIXABAY_API_KEY) {
   //   // fallback to placeholder if no API key
@@ -157,3 +158,4 @@ export async function generateImage(prompt: string) {
   //   return `https://via.placeholder.com/512x512.png?text=Error`;
   // }
 }
+// lib/openai.ts

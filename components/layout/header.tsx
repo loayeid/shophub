@@ -135,6 +135,11 @@ const Header = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                {user && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/wishlist">Wishlist</Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem asChild>
                   <Link href="/account">My Account</Link>
                 </DropdownMenuItem>
@@ -233,6 +238,17 @@ const Header = () => {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Admin Dashboard
+                  </Link>
+                </li>
+              )}
+              {user && (
+                <li>
+                  <Link 
+                    href="/wishlist"
+                    className="block py-2 px-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Wishlist
                   </Link>
                 </li>
               )}
