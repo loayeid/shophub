@@ -5,8 +5,12 @@ import { Star, ChevronRight, Truck, ArrowUpDown, Package } from 'lucide-react'
 import { getProductBySlug, getProductReviews, getProducts, getRelatedProducts } from '@/lib/api'
 import ProductCarousel from '@/components/product/product-carousel'
 import AddToCartButton from '@/components/product/add-to-cart-button'
+import WishlistButton from '@/components/product/wishlist-button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import getAuthUser from '@/lib/getAuthUser'
+import { isInWishlist } from '@/lib/db'
+import ReviewsSectionClient from "@/components/product/ReviewsSectionClient"
 
 export async function generateStaticParams() {
   const products = await getProducts();
@@ -32,6 +36,13 @@ export default async function ProductPage({
   
   const reviews = await getProductReviews(product.id)
   const relatedProducts = await getRelatedProducts(product.id)
+  
+  // Check if product is in wishlist for logged-in user
+  let initialInWishlist = false
+  const user = await getAuthUser()
+  if (user && typeof user !== 'string' && 'id' in user) {
+    initialInWishlist = !!(await isInWishlist(user.id, product.id))
+  }
   
   const averageRating = reviews.length > 0
     ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
@@ -137,8 +148,9 @@ export default async function ProductPage({
             {product.description}
           </p>
           
-          <div className="mb-6">
+          <div className="mb-6 flex items-center gap-4">
             <AddToCartButton product={product} />
+            <WishlistButton productId={product.id} initialInWishlist={initialInWishlist} />
           </div>
           
           <div className="space-y-4 border-t border-gray-200 dark:border-gray-800 pt-6">
@@ -174,7 +186,10 @@ export default async function ProductPage({
           </div>
         </div>
       </div>
-      
+
+      {/* Review Form and Reviews directly under product image */}
+      <ReviewsSectionClient initialReviews={reviews} productId={product.id} />
+
       {/* Product Details Tabs */}
       <div className="mb-12">
         <Tabs defaultValue="features">
@@ -209,71 +224,6 @@ export default async function ProductPage({
                   </div>
                 ))}
               </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="reviews" className="py-6">
-            <div className="space-y-8">
-              <h3 className="text-xl font-bold mb-6">Customer Reviews</h3>
-              {/* Review Form */}
-              <div className="mb-8">
-                <form action="/api/review/add" method="POST" className="space-y-4 bg-gray-50 dark:bg-gray-900 p-4 rounded border">
-                  <div>
-                    <label className="block font-medium mb-1">Your Name</label>
-                    <input name="userName" className="w-full border rounded p-2" required />
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Rating</label>
-                    <select name="rating" className="w-full border rounded p-2" required>
-                      <option value="">Select rating</option>
-                      {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Title</label>
-                    <input name="title" className="w-full border rounded p-2" required />
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Review</label>
-                    <textarea name="content" className="w-full border rounded p-2" rows={3} required />
-                  </div>
-                  <input type="hidden" name="productId" value={product.id} />
-                  <button type="submit" className="bg-primary text-white px-4 py-2 rounded">Submit Review</button>
-                </form>
-              </div>
-              {reviews.length > 0 ? (
-                <div className="space-y-6">
-                  {reviews.map(review => (
-                    <div key={review.id} className="border-b border-gray-200 dark:border-gray-800 pb-6">
-                      <div className="flex justify-between mb-2">
-                        <div>
-                          <p className="font-semibold">{review.userName}</p>
-                          <div className="flex items-center">
-                            <div className="flex text-yellow-400">
-                              {[...Array(5)].map((_, i) => (
-                                <Star 
-                                  key={i} 
-                                  className={`h-4 w-4 ${i < review.rating ? 'fill-current' : 'stroke-current fill-transparent'}`} 
-                                />
-                              ))}
-                            </div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 ml-2">
-                              {new Date(review.date).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <h4 className="font-medium mb-2">{review.title}</h4>
-                      <p className="text-gray-700 dark:text-gray-300">{review.content}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 dark:text-gray-400">
-                  There are no reviews for this product yet. Be the first to leave a review!
-                </p>
-              )}
             </div>
           </TabsContent>
         </Tabs>

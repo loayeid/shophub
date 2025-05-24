@@ -67,7 +67,7 @@ export default function AdminAnalyticsPage() {
 
   function handleReviewAction(id: string, status: 'approved' | 'rejected') {
     fetch('/api/admin/review/moderate', {
-      method: 'POST',
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, status })
     })

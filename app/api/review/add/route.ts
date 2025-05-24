@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
+import getAuthUser from '@/lib/getAuthUser';
 
 // POST: Add a new review
 export async function POST(req: NextRequest) {

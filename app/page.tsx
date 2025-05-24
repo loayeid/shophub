@@ -165,6 +165,17 @@ export default async function Home() {
           )}
         </div>
       </section>
+
+      {/* Contact Us & Footer section (single line) */}
+      <footer className="py-6 bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800 text-center">
+        <p className="text-gray-600 dark:text-gray-400 text-sm flex flex-col sm:flex-row justify-center items-center gap-2">
+          <span>contact us:</span>
+          <span className="hidden sm:inline mx-2">|</span>
+          <span>Phone: <a href="tel:+96176700983" className="text-primary hover:underline">+96176700983</a></span>
+          <span className="hidden sm:inline mx-2">|</span>
+          <span>Email: <a href="mailto:shobhub@gmail.com" className="text-primary hover:underline">shobhub@gmail.com</a></span>
+        </p>
+      </footer>
     </div>
   )
 }

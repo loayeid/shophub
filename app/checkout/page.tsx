@@ -577,9 +577,14 @@ export default function CheckoutPage() {
                               description: "Your order has been placed and will be paid on delivery.",
                             });
                           } else {
+                            let errorMsg = "Failed to save the order.";
+                            try {
+                              const data = await res.json();
+                              if (data && data.error) errorMsg = data.error;
+                            } catch {}
                             toast({
                               title: "Error",
-                              description: "Failed to save the order.",
+                              description: errorMsg,
                               variant: "destructive",
                             });
                           }

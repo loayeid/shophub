@@ -1,6 +1,7 @@
 import { cookies, headers } from 'next/headers'
 import Link from 'next/link'
 import Image from 'next/image'
+import WishlistGrid from '@/components/product/WishlistGrid'
 
 export default async function WishlistPage() {
   // Get absolute base URL for fetch
@@ -31,28 +32,7 @@ export default async function WishlistPage() {
           Your wishlist is empty.
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {wishlist.map((item: any) => (
-            <div key={item.id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex flex-col">
-              <Link href={`/product/${item.product.slug}`} className="block mb-2">
-                <div className="relative h-40 w-full mb-2">
-                  <Image
-                    src={item.product.image || 'https://images.pexels.com/photos/5926377/pexels-photo-5926377.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'}
-                    alt={item.product.name}
-                    fill
-                    style={{ objectFit: 'cover' }}
-                    className="rounded"
-                  />
-                </div>
-                <h2 className="text-lg font-semibold mb-1">{item.product.name}</h2>
-              </Link>
-              <div className="mt-auto flex justify-between items-center">
-                <span className="text-primary font-bold">${item.product.price}</span>
-                <Link href={`/product/${item.product.slug}`} className="text-blue-600 underline text-sm">View</Link>
-              </div>
-            </div>
-          ))}
-        </div>
+        <WishlistGrid wishlist={wishlist} />
       )}
     </div>
   )

@@ -62,9 +62,6 @@ export default function HomePage({ featuredProducts, categories, deals, discount
               <Button size="lg" asChild>
                 <Link href="/category/electronics">Shop Now</Link>
               </Button>
-              <Button size="lg" variant="outline" className="text-black border-white hover:bg-white/90">
-                <Link href="/deals">View Deals</Link>
-              </Button>
             </div>
           </div>
         </div>
@@ -102,11 +99,6 @@ export default function HomePage({ featuredProducts, categories, deals, discount
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold">Featured Products</h2>
-            <Button variant="ghost" asChild>
-              <Link href="/search" className="flex items-center">
-                View all <ChevronRight className="h-4 w-4 ml-1" />
-              </Link>
-            </Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {featuredProducts.map((product) => (
@@ -120,11 +112,6 @@ export default function HomePage({ featuredProducts, categories, deals, discount
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold">Top Deals</h2>
-            <Button variant="ghost" asChild>
-              <Link href="/deals" className="flex items-center">
-                View all deals <ChevronRight className="h-4 w-4 ml-1" />
-              </Link>
-            </Button>
           </div>
           <ProductCarousel products={deals} />
         </div>

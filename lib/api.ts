@@ -191,9 +191,9 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
   };
 }
 
-// Fetch reviews for a product
+// Fetch only approved reviews for a product
 export async function getProductReviews(productId: string): Promise<Review[]> {
-  const rows = await query('SELECT * FROM reviews WHERE product_id = ?', [productId]);
+  const rows = await query('SELECT * FROM reviews WHERE product_id = ? AND status = "approved"', [productId]);
   return (rows as any[]).map(row => ({
     id: String(row.id),
     productId: String(row.product_id),
@@ -319,7 +319,7 @@ export async function getDeals(limit = 6): Promise<Product[]> {
 
 // Fetch active discount codes for display (e.g., on homepage)
 export async function getActiveDiscountCodes(): Promise<DiscountCode[]> {
-  const rows = await query('SELECT * FROM discounts WHERE active = 1 AND (start_date IS NULL OR start_date <= NOW()) AND (end_date IS NULL OR end_date >= NOW()) ORDER BY created_at DESC');
+  const rows = await query('SELECT * FROM discount_codes WHERE active = 1 AND (start_date IS NULL OR start_date <= NOW()) AND (end_date IS NULL OR end_date >= NOW()) ORDER BY created_at DESC');
   return (rows as any[]).map((row: any) => ({
     id: row.id,
     code: row.code,

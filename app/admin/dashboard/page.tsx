@@ -84,6 +84,12 @@ export default function AdminDashboard() {
 
   async function handleAddProduct(e: React.FormEvent) {
     e.preventDefault();
+    // Check for duplicate slug before submitting
+    const slugExists = products.some(p => p.slug === productForm.slug);
+    if (slugExists) {
+      toast({ title: "Error", description: "Slug already exists. Please use a unique slug.", variant: "destructive" });
+      return;
+    }
     try {
       const res = await fetch("/api/admin/product/add", {
         method: "POST",
@@ -92,7 +98,7 @@ export default function AdminDashboard() {
           ...productForm,
           price: parseFloat(productForm.price),
           originalPrice: productForm.originalPrice ? parseFloat(productForm.originalPrice) : null,
-          images: productForm.images.split(",").map((img) => img.trim()),
+          images: productForm.images.split(",").map((img) => img.trim()).filter(Boolean),
           features: productForm.features ? productForm.features.split(",").map(f => f.trim()) : [],
           specifications: productForm.specifications ? JSON.parse(productForm.specifications) : {}
         })
@@ -125,6 +131,12 @@ export default function AdminDashboard() {
 
   async function handleAddCategory(e: React.FormEvent) {
     e.preventDefault();
+    // Check for duplicate slug before submitting
+    const slugExists = categories.some(c => c.slug === categoryForm.slug);
+    if (slugExists) {
+      toast({ title: "Error", description: "Slug already exists. Please use a unique slug.", variant: "destructive" });
+      return;
+    }
     const res = await fetch("/api/admin/category/add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -239,6 +251,12 @@ export default function AdminDashboard() {
   async function handleEditProduct(e: React.FormEvent) {
     e.preventDefault();
     if (!editProductId) return;
+    // Check for duplicate slug before submitting (ignore self)
+    const slugExists = products.some(p => p.slug === productForm.slug && p.id !== editProductId);
+    if (slugExists) {
+      toast({ title: "Error", description: "Slug already exists. Please use a unique slug.", variant: "destructive" });
+      return;
+    }
     try {
       const res = await fetch("/api/admin/product/edit", {
         method: "POST",
@@ -248,7 +266,7 @@ export default function AdminDashboard() {
           ...productForm,
           price: parseFloat(productForm.price),
           originalPrice: productForm.originalPrice ? parseFloat(productForm.originalPrice) : null,
-          images: productForm.images.split(",").map((img) => img.trim()),
+          images: productForm.images.split(",").map((img) => img.trim()).filter(Boolean),
           features: productForm.features ? productForm.features.split(",").map(f => f.trim()) : [],
           specifications: productForm.specifications ? JSON.parse(productForm.specifications) : {}
         })
@@ -258,7 +276,12 @@ export default function AdminDashboard() {
         cancelEditProduct();
         fetchData();
       } else {
-        toast({ title: "Error", description: "Failed to update product", variant: "destructive" });
+        let errorMsg = "Failed to update product.";
+        try {
+          const data = await res.json();
+          if (data && data.message) errorMsg = data.message;
+        } catch {}
+        toast({ title: "Error", description: errorMsg, variant: "destructive" });
       }
     } catch (err) {
       toast({ title: "Error", description: "Invalid product data", variant: "destructive" });
@@ -327,6 +350,17 @@ export default function AdminDashboard() {
               <form onSubmit={editProductId ? handleEditProduct : handleAddProduct} className="space-y-2">
                 <Input placeholder="Name" value={productForm.name} onChange={e => setProductForm(f => ({ ...f, name: e.target.value }))} required />
                 <Input placeholder="Slug" value={productForm.slug} onChange={e => setProductForm(f => ({ ...f, slug: e.target.value }))} required />
+                <Button type="button" variant="outline" onClick={() => {
+                  // Generate slug from name
+                  let baseSlug = productForm.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                  let uniqueSlug = baseSlug;
+                  let counter = 1;
+                  while (products.some(p => p.slug === uniqueSlug)) {
+                    uniqueSlug = `${baseSlug}-${counter++}`;
+                  }
+                  setProductForm(f => ({ ...f, slug: uniqueSlug }));
+                  toast({ title: "Slug generated", description: `Slug set to '${uniqueSlug}'` });
+                }}>Auto-generate</Button>
                 <Input placeholder="Description" value={productForm.description} onChange={e => setProductForm(f => ({ ...f, description: e.target.value }))} />
                 <Input placeholder="Price" type="number" value={productForm.price} onChange={e => setProductForm(f => ({ ...f, price: e.target.value }))} required />
                 <Input placeholder="Original Price" type="number" value={productForm.originalPrice} onChange={e => setProductForm(f => ({ ...f, originalPrice: e.target.value }))} />
