@@ -197,6 +197,9 @@ export default function LoginPage() {
                   showPassword={showLoginPassword}
                   togglePasswordVisibility={() => setShowLoginPassword(!showLoginPassword)}
                 />
+                <div className="text-right">
+                  <Link href="/forgot-password" className="text-primary text-sm hover:underline">Forgot Password?</Link>
+                </div>
               </CardContent>
               
               <CardFooter>

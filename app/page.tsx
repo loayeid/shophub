@@ -55,9 +55,6 @@ export default async function Home() {
               <Button size="lg" asChild>
                 <Link href="/category/electronics">Shop Now</Link>
               </Button>
-              <Button size="lg" variant="outline" className="text-black border-white hover:bg-white/90">
-                <Link href="/search">View Deals</Link>
-              </Button>
             </div>
           </div>
         </div>

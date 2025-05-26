@@ -1,4 +1,9 @@
-export async function POST(req: Request) {
-  // your handler logic
-  return new Response('Image uploaded', { status: 200 });
+// app/api/upload-image/route.ts
+
+import { NextResponse } from 'next/server';
+
+export async function POST(request: Request) {
+  // handle your image upload logic here
+
+  return NextResponse.json({ message: 'Upload successful' });
 }

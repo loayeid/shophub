@@ -110,16 +110,17 @@ const Header = () => {
         </div>
         
         <div className="hidden md:flex flex-1 max-w-xl mx-4">
-          <form onSubmit={handleSearch} className="flex w-full max-w-xl">
+          <form onSubmit={handleSearch} className="flex max-w-lg w-full mx-auto">
             <Input
               type="text"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 rounded-r-none"
               placeholder="Search products..."
-              className="rounded-r-none"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
             />
-            <Button type="submit" className="rounded-l-none">
-              <Search className="h-4 w-4" />
+            <Button type="submit" className="rounded-l-none px-4 bg-primary text-white">
+              <Search className="h-4 w-4 mr-2" />
+              Search
             </Button>
           </form>
         </div>

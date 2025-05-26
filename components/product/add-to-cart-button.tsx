@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useCart } from '@/context/cart-context'
 import { Product } from '@/types'
 import { useToast } from '@/hooks/use-toast'
+import { useUser } from '@/context/user-context'
 
 interface AddToCartButtonProps {
   product: Product
@@ -15,6 +16,7 @@ const AddToCartButton = ({ product }: AddToCartButtonProps) => {
   const [quantity, setQuantity] = useState(1)
   const { addToCart } = useCart()
   const { toast } = useToast()
+  const { user } = useUser()
   
   const handleQuantityChange = (value: number) => {
     // Ensure quantity is between 1 and stock limit
@@ -23,6 +25,15 @@ const AddToCartButton = ({ product }: AddToCartButtonProps) => {
   }
   
   const handleAddToCart = () => {
+    if (!user) {
+      toast({
+        title: 'You must log in to add items to your cart',
+        description: 'Please log in to continue.',
+        variant: 'destructive',
+        duration: 3000,
+      })
+      return
+    }
     addToCart(product, quantity)
     
     toast({

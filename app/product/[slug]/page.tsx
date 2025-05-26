@@ -217,29 +217,37 @@ export default async function ProductPage({
               <h3 className="text-xl font-bold mb-6">Customer Reviews</h3>
               {/* Review Form */}
               <div className="mb-8">
-                <form action="/api/review/add" method="POST" className="space-y-4 bg-gray-50 dark:bg-gray-900 p-4 rounded border">
-                  <div>
-                    <label className="block font-medium mb-1">Your Name</label>
-                    <input name="userName" className="w-full border rounded p-2" required />
+                {/* Only show form if user is logged in, else show login prompt */}
+                {typeof window !== 'undefined' && !window.localStorage.getItem('auth_token') ? (
+                  <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded mb-4">
+                    <p>You must <a href="/login" className="text-primary underline">log in</a> to submit a review.</p>
                   </div>
-                  <div>
-                    <label className="block font-medium mb-1">Rating</label>
-                    <select name="rating" className="w-full border rounded p-2" required>
-                      <option value="">Select rating</option>
-                      {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Title</label>
-                    <input name="title" className="w-full border rounded p-2" required />
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Review</label>
-                    <textarea name="content" className="w-full border rounded p-2" rows={3} required />
-                  </div>
-                  <input type="hidden" name="productId" value={product.id} />
-                  <button type="submit" className="bg-primary text-white px-4 py-2 rounded">Submit Review</button>
-                </form>
+                ) : null}
+                {typeof window !== 'undefined' && window.localStorage.getItem('auth_token') && (
+                  <form action="/api/review/add" method="POST" className="space-y-4 bg-gray-50 dark:bg-gray-900 p-4 rounded border">
+                    <div>
+                      <label className="block font-medium mb-1">Your Name</label>
+                      <input name="userName" className="w-full border rounded p-2" required />
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1">Rating</label>
+                      <select name="rating" className="w-full border rounded p-2" required>
+                        <option value="">Select rating</option>
+                        {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1">Title</label>
+                      <input name="title" className="w-full border rounded p-2" required />
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1">Review</label>
+                      <textarea name="content" className="w-full border rounded p-2" rows={3} required />
+                    </div>
+                    <input type="hidden" name="productId" value={product.id} />
+                    <button type="submit" className="bg-primary text-white px-4 py-2 rounded">Submit Review</button>
+                  </form>
+                )}
               </div>
               {reviews.length > 0 ? (
                 <div className="space-y-6">

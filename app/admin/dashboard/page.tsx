@@ -30,7 +30,6 @@ export default function AdminDashboard() {
     images: "",
     categoryId: "",
     stock: "",
-    features: "",
     specifications: ""
   });
   // Category form state
@@ -93,13 +92,12 @@ export default function AdminDashboard() {
           price: parseFloat(productForm.price),
           originalPrice: productForm.originalPrice ? parseFloat(productForm.originalPrice) : null,
           images: productForm.images.split(",").map((img) => img.trim()),
-          features: productForm.features ? productForm.features.split(",").map(f => f.trim()) : [],
           specifications: productForm.specifications ? JSON.parse(productForm.specifications) : {}
         })
       });
       if (res.ok) {
         toast({ title: "Product added" });
-        setProductForm({ name: "", slug: "", description: "", price: "", originalPrice: "", images: "", categoryId: "", stock: "", features: "", specifications: "" });
+        setProductForm({ name: "", slug: "", description: "", price: "", originalPrice: "", images: "", categoryId: "", stock: "", specifications: "" });
         fetchData();
       } else {
         toast({ title: "Error", description: "Failed to add product", variant: "destructive" });
@@ -227,14 +225,13 @@ export default function AdminDashboard() {
       images: prod.images?.join ? prod.images.join(",") : "",
       categoryId: prod.category?.id || prod.categoryId || "",
       stock: prod.stock?.toString() || "",
-      features: prod.features?.join ? prod.features.join(",") : "",
       specifications: prod.specifications ? JSON.stringify(prod.specifications) : ""
     });
     setShowProductForm(true);
   }
   function cancelEditProduct() {
     setEditProductId(null);
-    setProductForm({ name: "", slug: "", description: "", price: "", originalPrice: "", images: "", categoryId: "", stock: "", features: "", specifications: "" });
+    setProductForm({ name: "", slug: "", description: "", price: "", originalPrice: "", images: "", categoryId: "", stock: "", specifications: "" });
   }
   async function handleEditProduct(e: React.FormEvent) {
     e.preventDefault();
@@ -249,7 +246,6 @@ export default function AdminDashboard() {
           price: parseFloat(productForm.price),
           originalPrice: productForm.originalPrice ? parseFloat(productForm.originalPrice) : null,
           images: productForm.images.split(",").map((img) => img.trim()),
-          features: productForm.features ? productForm.features.split(",").map(f => f.trim()) : [],
           specifications: productForm.specifications ? JSON.parse(productForm.specifications) : {}
         })
       });
@@ -336,8 +332,6 @@ export default function AdminDashboard() {
                   {categories.map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                 </select>
                 <Input placeholder="Stock" type="number" value={productForm.stock} onChange={e => setProductForm(f => ({ ...f, stock: e.target.value }))} required />
-                <Input placeholder="Features (comma separated)" value={productForm.features} onChange={e => setProductForm(f => ({ ...f, features: e.target.value }))} />
-                <Input placeholder="Specifications (JSON)" value={productForm.specifications} onChange={e => setProductForm(f => ({ ...f, specifications: e.target.value }))} />
                 <div className="flex gap-2">
                   <Button type="submit">{editProductId ? "Save Changes" : "Add Product"}</Button>
                   {editProductId && <Button type="button" variant="outline" onClick={cancelEditProduct}>Cancel</Button>}

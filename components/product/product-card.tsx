@@ -10,6 +10,7 @@ import { Product } from '@/types'
 import { useCart } from '@/context/cart-context'
 import { useToast } from '@/hooks/use-toast'
 import WishlistButton from './wishlist-button'
+import { useUser } from '@/context/user-context'
 
 interface ProductCardProps {
   product: Product
@@ -19,6 +20,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false)
   const { addToCart } = useCart()
   const { toast } = useToast()
+  const { user } = useUser()
   
   const isOnSale = product.originalPrice && product.originalPrice > product.price
   const discountPercentage = isOnSale
@@ -27,6 +29,15 @@ const ProductCard = ({ product }: ProductCardProps) => {
   
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
+    if (!user) {
+      toast({
+        title: 'You must log in to add items to your cart',
+        description: 'Please log in to continue.',
+        variant: 'destructive',
+        duration: 3000,
+      })
+      return
+    }
     addToCart(product, 1)
     
     toast({
